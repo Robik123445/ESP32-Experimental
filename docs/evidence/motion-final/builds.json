@@ -1,0 +1,38 @@
+{
+  "baseline": {
+    "binary_bytes": 841824,
+    "iram": 72646,
+    "static_data_ram": 54029,
+    "warning_classes": []
+  },
+  "off": {
+    "binary_bytes": 841824,
+    "iram": 72646,
+    "static_data_ram": 54029,
+    "warning_classes": []
+  },
+  "scurve": {
+    "binary_bytes": 847824,
+    "iram": 72646,
+    "static_data_ram": 54469,
+    "warning_classes": []
+  },
+  "ftm": {
+    "binary_bytes": 847856,
+    "iram": 72782,
+    "static_data_ram": 55253,
+    "warning_classes": []
+  },
+  "bench": {
+    "binary_bytes": 856752,
+    "iram": 72782,
+    "static_data_ram": 87789,
+    "warning_classes": []
+  },
+  "all": {
+    "binary_bytes": 859024,
+    "iram": 72782,
+    "static_data_ram": 87813,
+    "warning_classes": []
+  }
+}

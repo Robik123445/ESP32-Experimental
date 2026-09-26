@@ -1,0 +1,9 @@
+{
+  "grbl/planner.c": true,
+  "grbl/stepper.c": true,
+  "grbl/gcode.c": true,
+  "grbl/protocol.c": true,
+  "grbl/motion_control.c": true,
+  "grbl/state_machine.c": true,
+  "driver.c": true
+}

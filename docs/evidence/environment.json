@@ -1,0 +1,8 @@
+{
+  "os": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+  "host_cpu": "AMD Ryzen 5 1600 Six-Core Processor",
+  "host_compiler": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "sdk": "ESP-IDF v4.4.6",
+  "target_compiler": "xtensa-esp32s3-elf GCC 8.4.0",
+  "baseline_commit": "dcc2b3de27e3d813959861dd05be12f7739651f5"
+}

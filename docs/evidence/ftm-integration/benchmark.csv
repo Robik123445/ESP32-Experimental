@@ -1,0 +1,3 @@
+profile,samples,host_ns_per_sample,worst_host_batch_ns_per_sample,state_bytes,queue_high_water,underruns,end_x_steps,end_y_steps
+FTM_BYPASS,500000,48.083,110.741,2140,1,0,125000,62500
+FTM_ZV_SMOOTHING,500020,93.401,175.932,16324,1,0,125000,62500

@@ -1,0 +1,11 @@
+{
+  "all_off_disassembly_and_relocations_identical": {
+    "grbl/planner": true,
+    "grbl/stepper": true,
+    "grbl/gcode": true,
+    "grbl/protocol": true,
+    "grbl/motion_control": true,
+    "grbl/state_machine": true,
+    "driver": true
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "baseline": {
+    "binary_bytes": 841824,
+    "iram": 72646,
+    "static_data_ram": 54029,
+    "warning_classes": []
+  },
+  "off": {
+    "binary_bytes": 841824,
+    "iram": 72646,
+    "static_data_ram": 54029,
+    "warning_classes": [
+      "#warning \"Selected spindle is not fully supported - no direction output!\" [-Wcpp]"
+    ]
+  },
+  "scurve": {
+    "binary_bytes": 848080,
+    "iram": 72646,
+    "static_data_ram": 54469,
+    "warning_classes": [
+      "#warning \"Selected spindle is not fully supported - no direction output!\" [-Wcpp]"
+    ]
+  },
+  "ftm": {
+    "binary_bytes": 841824,
+    "iram": 72646,
+    "static_data_ram": 54029,
+    "warning_classes": [
+      "#warning \"Selected spindle is not fully supported - no direction output!\" [-Wcpp]"
+    ]
+  },
+  "bench": {
+    "binary_bytes": 849696,
+    "iram": 72646,
+    "static_data_ram": 71501,
+    "warning_classes": [
+      "#warning \"Selected spindle is not fully supported - no direction output!\" [-Wcpp]"
+    ]
+  },
+  "all": {
+    "binary_bytes": 855312,
+    "iram": 72646,
+    "static_data_ram": 71933,
+    "warning_classes": [
+      "#warning \"Selected spindle is not fully supported - no direction output!\" [-Wcpp]"
+    ]
+  }
+}

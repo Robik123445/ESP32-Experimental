@@ -1,0 +1,85 @@
+# Windows thumbnail cache files
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# Subversion folders
+
+.svn
+
+# Build outputs and package caches
+/build*/
+/.pio/
+/.platformio/
+/bin/
+/dist/
+/_experimental/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/compile_commands.json
+**/.cache/
+**/node_modules/
+**/__pycache__/
+**/.pytest_cache/
+*.py[cod]
+*.o
+*.obj
+*.a
+*.elf
+*.bin
+*.hex
+
+# Generated/local ESP-IDF configuration. Keep sdkconfig.defaults* templates.
+/sdkconfig*
+!/sdkconfig.defaults
+!/sdkconfig.defaults.*
+
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*
+*secrets*
+
+# IDE and editor state
+.vscode/
+.idea/
+**/.settings/
+/.project
+/.cproject
+/.classpath
+*.code-workspace
+*~
+*.swp
+*.swo
+*.tmp
+*.bak
+*.log
+
+# OS metadata
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+.DS_Store
+.svn/
+$RECYCLE.BIN/
