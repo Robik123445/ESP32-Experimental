@@ -1,88 +1,176 @@
-## ESP32 grblHAL driver
+# ESP32-S3 grblHAL Experimental CNC Firmware
 
-__Important:__  
-If enabling ftp upload to the SD card then _ffconf.h_ in the ESP SDK has to be edited, `#define FF_FS_RPATH` must be changed to 2 or you will get a compiler error.  
-_ffconf.h_ is located in the subfolder _esp-idf\components\fatfs\src_ in the ESP32 SDK installation. The ESP32 SDK is typically installed in the user folder.
+Experimental **ESP32-S3 CNC firmware based on grblHAL**, focused on advanced motion-control development and validation.
 
-This driver can be built with the [Web Builder](http://svn.io-engineering.com:8080/?driver?driver=ESP32).
+This repository contains an independent experimental snapshot of the ESP32 grblHAL driver with software-integrated:
 
-### How to build using ESP-IDF v4.3:
+- analytic **S-curve / jerk-limited motion**
+- **Fixed-Time Motion (FTM)** at a 1 kHz internal sampling grid
+- configurable **ZV input shaping**
+- optional **trajectory smoothing**
+- ESP32-S3 native **STEP/DIR** output through the existing timer/RMT HAL
+- host-side motion, timing, planner, hold/resume and safety regression tests
 
-While this manual briefly describes basic build process on Linux OS, you can find more details
-as well as differences for building on other OS at this webpage:
+> **Status:** software integration and host validation are complete. Physical CNC acceptance testing is still pending.
 
-https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#step-2-get-esp-idf
+## Why this repository exists
 
-First you have to prepare esp-idf v4.3:
+The goal is to explore a safer and more measurable motion-control path for **ESP32-S3 + grblHAL CNC controllers** without modifying the preserved baseline firmware.
 
-```bash
-#Create directory and clone esp-idf into it:
-mkdir -p ~/esp
-cd ~/esp
-git clone -b release/v4.3 --recursive --shallow-submodules https://github.com/espressif/esp-idf.git
+The experimental stack keeps the original parser, planner, CNC protocol and native STEP/DIR execution path, while adding optional motion layers that can be compiled independently.
 
-#Prepare build environment and toolchain:
-cd ~/esp/esp-idf
-./install.sh
-. ~/esp/esp-idf/export.sh
+All experimental features default **OFF**.
+
+## Motion pipeline
+
+```text
+G-code / grblHAL parser
+        ↓
+grblHAL planner
+        ↓
+jerk-aware lookahead
+        ↓
+analytic S-curve or trapezoid
+        ↓
+1 kHz fixed-time position sampling
+        ↓
+optional ZV input shaping
+        ↓
+optional trajectory smoothing
+        ↓
+absolute step quantization
+        ↓
+native segment buffer
+        ↓
+Bresenham STEP ISR
+        ↓
+ESP32-S3 timer / RMT STEP-DIR HAL
 ```
 
-Then get the grblHAL driver code:
+## Current implementation
 
-```bash
-#Create directory and clone the ESP32 grblHAL driver into it:
-git clone --recursive https://github.com/grblHAL/ESP32.git
+### S-curve motion
+
+The experimental S-curve path uses analytic constant-jerk phases and jerk-aware planner reachability.
+
+The previous experimental jerk timing defect was repaired. For the documented X100 / Y33 test case, the old branch emitted **0.837344050 s**, below the ideal constant-acceleration minimum of **0.894427191 s**. The repaired path requests approximately **1.001756 s**, or **1.001000 s** with fixed-time sampling.
+
+### Fixed-Time Motion
+
+FTM generates foreground position samples on a **1 ms grid** and feeds the existing native segment and STEP/DIR pipeline.
+
+The implementation deliberately reuses the original ESP32-S3 stepper HAL instead of introducing a second hardware pulse generator.
+
+### ZV input shaping
+
+Optional ZV input shaping can be configured independently for X and Y resonance parameters.
+
+The live Cartesian adapter applies a common time kernel to preserve XYZ line geometry before step quantization.
+
+Persistent grblHAL settings:
+
+```text
+$780  X shaper type
+$781  X resonance frequency
+$782  X damping ratio
+$783  Y shaper type
+$784  Y resonance frequency
+$785  Y damping ratio
+$786  smoothing window
 ```
 
-Go into the `ESP32/main` directory and modify settings in `grbl/config.h` and `CMakeLists.txt` as needed.
-Pin assignments and board specific config is in `*_map.h` files for each individual board.
+### Trajectory smoothing
 
-Run `idf.py build` from the `ESP32` directory.
-This will build the firmware image which can be later flashed into ESP32 device.
+An optional moving-average smoothing stage can be enabled after fixed-time sampling.
 
-Note that `idf.py` command is only available in terminal window which was previously configured
-using the `. ~/esp/esp-idf/export.sh` command.
+Window `1` is bypass.
 
-After build is completed you will be instructed on how to flash firmware into the device.
-Typically you can use command similar to this: `idf.py -p /dev/ttyUSB0 flash`
+## Build profiles
 
-Once flashing is complete, your CNC controller is ready to be configured and used.
+Available profiles:
 
+- `baseline`
+- `off`
+- `scurve`
+- `ftm`
+- `bench`
+- `all`
 
-### Using Docker
+Typical validation commands:
 
-If you're familiar with [Docker](https://docker.io), you can use it to build grblHAL in a self-contained environment without installing the complete toolchain on your system:
+```bash
+./tools/build_motion.sh off
+./tools/build_motion.sh all
+./tools/build_motion_matrix.sh motion-final
+./tools/test_motion.sh
+SANITIZE=1 ./tools/test_motion.sh
+./tools/benchmark_motion.sh
+```
 
-- prepare and configure the codebase as described above
-- build with `docker run -it --rm -v $(pwd):/grbl -w /grbl espressif/idf:release-v4.3 idf.py build`
-- flash with `docker run -it --rm -v $(pwd):/grbl --privileged -v /dev:/dev -w /grbl/drivers/ESP32 espressif/idf:release-v4.3 idf.py -p /dev/ttyUSB0 flash`
+Validated target build environment documented in this repository:
 
-### Building with user defined plugin
+- **ESP-IDF 4.4.6**
+- **Xtensa ESP32-S3 GCC 8.4.0**
 
-The file containing `my_plugin_init()` has to be added to _CMakeLists.txt_ in the [SRCS list](https://github.com/grblHAL/ESP32/blob/38dde1140d885fc847a0fa9c643cddd3fb1d02f4/main/CMakeLists.txt#L162)
-and [grbl/my_plugin.c](https://github.com/grblHAL/ESP32/blob/38dde1140d885fc847a0fa9c643cddd3fb1d02f4/main/CMakeLists.txt#L178) has to be removed from it to be linked correctly.
+## Validation status
 
-### Changelog/Notes:
+Current software-side acceptance includes:
+
+- six ESP32-S3 build configurations compiling and linking
+- all-off compatibility checks against the preserved baseline
+- 1,051 analytic motion profiles
+- 120 deterministic randomized multi-block paths
+- planner / preparer / ISR endpoint and absolute pulse-count tests
+- hold / resume and parking regression tests
+- starvation, abort and reset handling
+- ZV-only and ZV + smoothing pipeline tests
+- ASan / UBSan host test passes
+
+The software STEP harness exercises up to **100,000 steps/s**, but this is **not a claimed physical machine rating**.
+
+Physical ESP32-S3 CPU load, worst ISR latency, heap/stack margin and maximum safe real-world STEP frequency remain to be measured on hardware.
+
+## Safety and current limitations
+
+This repository is **experimental firmware**, not production-ready CNC firmware.
+
+No physical machine acceptance is claimed yet.
+
+Before real machine use, the planned bench sequence includes:
+
+1. ESP32-S3 test with motor power disconnected
+2. logic-analyzer verification of STEP/DIR timing
+3. preparation and ISR latency measurements
+4. heap / stack margin checks
+5. USB / streaming load testing
+6. limit, probe, hold, reset and safety-door testing
+7. controlled low-speed machine motion
+
+Homing, probing, jogging, parking, spindle synchronization and other specialized motion modes retain the native path where documented.
+
+## Documentation
+
+Detailed engineering notes are available here:
+
+- [Experimental motion integration](docs/EXPERIMENTAL_MOTION.md)
+- [Motion architecture audit](docs/MOTION_ARCHITECTURE.md)
+- [ZV input shaping](docs/INPUT_SHAPING.md)
+- [Benchmarks and acceptance results](docs/BENCHMARKS.md)
+
+## Project context
+
+This firmware is part of **Project Alfa**, an ongoing autonomous-workshop development project combining CNC control, machine vision, automation and AI-assisted engineering.
+
+## Upstream and credits
+
+This repository is based on the **grblHAL ESP32 driver** and preserves the original open-source licensing and credits.
+
+Upstream project:
+
+https://github.com/grblHAL/ESP32
+
+See [COPYING](COPYING) for license information.
 
 ---
 
-__NOTE:__ _grbl/config.h_ or _CMakeLists.txt_ may need modification before compilation. If needed an `#error` (with instructions) will be generated when compiling.
-
-
-__NOTE:__ Configuration has been simplified a bit, primarily change options in [`CMakeLists.txt`](https://github.com/grblHAL/ESP32/blob/master/main/CMakeLists.txt) to enable/disable.
-Configuration of options in _my_machine.h_ is turned off in _CMakeLists.txt_ by default due to this.
-
-
----
-
-### Credits:
-
-index.htm.gz is Copyright (c) 2019 Luc Lebosse - from his [ESP3D-WEBUI](https://github.com/luc-github/ESP3D-webui), I may have pulled a few lines from his backend code too.
-
-dns_server.c is Copyright (c) 2019 Tony Pottier - from his [ESP32 WiFi Manager](https://github.com/tonyp7/esp32-wifi-manager) 
-
-Snippets of code is extracted from Espressif ESP-IDF examples which are public domain.
-
----
-2023-09-20
-
+**Keywords:** ESP32-S3, ESP32, grblHAL, GRBL, CNC, CNC controller, motion control, S-curve, jerk-limited motion, fixed-time motion, FTM, input shaping, ZV input shaper, trajectory smoothing, STEP/DIR, RMT, ESP-IDF, robotics, machine control.
