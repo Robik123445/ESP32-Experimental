@@ -14,7 +14,7 @@ The project currently integrates:
 - ESP32-S3 native **STEP/DIR** output through the existing grblHAL timer/RMT HAL
 - host-side planner, timing, pulse-count, hold/resume, abort and safety regression tests
 
-> **Status:** software integration and host validation are complete. Physical CNC acceptance testing is still pending. This is experimental firmware, not a production machine release.
+> **Status:** software integration and host validation are complete, and **initial physical CNC testing is now in progress**. Early machine tests show smoother and quieter motion, but the system has not yet been fully retuned or physically qualified. This is experimental firmware, not a production machine release.
 
 ## Why this exists
 
@@ -27,6 +27,16 @@ The design goal is simple:
 > Keep grblHAL's CNC behavior and hardware layer, then experiment with a fixed-time sampled motion layer, jerk-limited profiles and resonance shaping on top of it.
 
 All experimental features default **OFF**.
+
+## Upstream review
+
+To make the work easier to compare with upstream grblHAL, the experimental integration is also mirrored into a dedicated branch of the real `grblHAL/ESP32` fork:
+
+- [grblHAL Discussion #222](https://github.com/grblHAL/ESP32/discussions/222)
+- [experimental-motion-s3 review branch](https://github.com/Robik123445/ESP32/tree/experimental-motion-s3)
+- [upstream review guide](https://github.com/Robik123445/ESP32/blob/experimental-motion-s3/UPSTREAM_REVIEW.md)
+
+The standalone repository you are reading remains the complete experimental snapshot.
 
 ## Marlin inspiration and lineage
 
@@ -203,7 +213,21 @@ Current software-side acceptance includes:
 
 The software STEP harness exercises up to **100,000 steps/s**, but this is **not a claimed physical machine rating**.
 
-Physical ESP32-S3 CPU load, worst ISR latency, heap/stack margin and maximum safe real-world STEP frequency remain to be measured on hardware.
+Physical ESP32-S3 CPU load, worst ISR latency, heap/stack margin and maximum safe real-world STEP frequency still need systematic measurement on hardware.
+
+### Initial physical CNC observations
+
+The firmware has now been exercised on a real production CNC using **NEMA23 stepper motors** and **TB6600-class drivers**.
+
+Early practical observations:
+
+- motor noise is noticeably lower
+- motion subjectively feels smoother
+- the machine currently feels slower than the previous configuration
+- the previous grblHAL setup was tuned aggressively
+- acceleration / velocity / motion parameters have **not yet been retuned** for the experimental stack
+
+The "slower" observation is currently operator feedback, not a benchmark result. More controlled physical testing and tuning are required before making performance claims.
 
 ## Safety and current limitations
 
