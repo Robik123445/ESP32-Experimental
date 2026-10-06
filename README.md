@@ -1,32 +1,83 @@
 # grblHAL ESP32-S3 Experimental Motion
 
-## Marlin-inspired Fixed-Time Motion, ZV Input Shaping, S-Curve and Trajectory Smoothing for CNC
+<p align="center">
+  <strong>Advanced CNC motion-control experiments on ESP32-S3, built around grblHAL.</strong>
+</p>
 
-Experimental **ESP32-S3 CNC firmware based on grblHAL** that explores advanced motion-control ideas commonly associated with modern 3D-printer firmware and adapts them to the grblHAL CNC execution pipeline.
+<p align="center">
+  <img src="https://img.shields.io/badge/MCU-ESP32--S3-blue" alt="ESP32-S3">
+  <img src="https://img.shields.io/badge/base-grblHAL-2ea44f" alt="grblHAL">
+  <img src="https://img.shields.io/badge/language-C-555555" alt="C">
+  <img src="https://img.shields.io/badge/status-experimental-orange" alt="Experimental">
+  <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later">
+</p>
 
-The project currently integrates:
+Experimental **ESP32-S3 CNC firmware based on grblHAL** exploring modern motion-control techniques while keeping grblHAL's CNC parser, protocol and native STEP/DIR hardware path.
 
-- analytic **S-curve / jerk-limited motion**
-- **Fixed-Time Motion (FTM)** at a 1 kHz internal position-sampling grid
-- configurable **ZV input shaping**
-- optional **trajectory smoothing**
-- jerk-aware planner reachability
-- ESP32-S3 native **STEP/DIR** output through the existing grblHAL timer/RMT HAL
-- host-side planner, timing, pulse-count, hold/resume, abort and safety regression tests
+The repository focuses on adapting ideas commonly seen in modern 3D-printer firmware to a CNC-oriented grblHAL architecture without replacing the underlying CNC control stack.
 
-> **Status:** software integration and host validation are complete, and **initial physical CNC testing is now in progress**. Early machine tests show smoother and quieter motion, but the system has not yet been fully retuned or physically qualified. This is experimental firmware, not a production machine release.
+> **Current status:** software integration and host-side validation are complete. Initial testing on a real CNC is in progress. Early machine tests show noticeably smoother and quieter motion, but tuning and systematic hardware qualification are still ongoing.
+
+## What this repository adds
+
+| Feature | Experimental implementation |
+|---|---|
+| Motion profile | Analytic **S-curve / jerk-limited motion** |
+| Fixed-time layer | **1 kHz Fixed-Time Motion** position sampling |
+| Resonance control | Configurable **ZV input shaping** for X/Y |
+| Path filtering | Optional **trajectory smoothing** |
+| Planner | Jerk-aware reachability |
+| STEP/DIR output | Existing grblHAL **ESP32-S3 timer/RMT HAL** reused |
+| Validation | Planner, timing, pulse-count, hold/resume, abort and safety regression tests |
+
+### Core idea
+
+```text
+G-code
+  ↓
+grblHAL planner
+  ↓
+jerk-aware motion profile
+  ↓
+1 kHz fixed-time sampling
+  ↓
+optional ZV input shaping
+  ↓
+optional trajectory smoothing
+  ↓
+native grblHAL segment + STEP/DIR pipeline
+```
+
+All experimental features default **OFF**, so the baseline behavior remains available for comparison.
 
 ## Why this exists
 
-Marlin has pushed several interesting motion-control ideas into widely available embedded hardware, including **Fixed-Time Motion**, **input shaping** and trajectory smoothing. This repository explores what a CNC-oriented implementation of those ideas looks like when integrated into **grblHAL on ESP32-S3** instead of replacing grblHAL's parser, CNC protocol and native STEP/DIR HAL.
+Marlin has pushed several interesting motion-control concepts into widely available embedded hardware, including **Fixed-Time Motion**, **input shaping** and trajectory smoothing.
 
-This is **not Marlin firmware** and it is not a drop-in port of Marlin's motion stack. The experimental motion modules are integrated around grblHAL's existing planner / segment / ISR architecture.
+This project explores what those ideas look like when integrated into **grblHAL on ESP32-S3** while retaining the existing CNC parser, protocol, planner architecture and native hardware abstraction layer.
 
-The design goal is simple:
+This is **not Marlin firmware** and not a drop-in port of Marlin's motion stack. The experimental modules are integrated around grblHAL's existing planner / segment / ISR architecture.
 
-> Keep grblHAL's CNC behavior and hardware layer, then experiment with a fixed-time sampled motion layer, jerk-limited profiles and resonance shaping on top of it.
+## Hardware status
 
-All experimental features default **OFF**.
+Real-machine testing has started on a CNC using **NEMA23 stepper motors** with **TB6600-class drivers**.
+
+Early observations:
+
+- lower motor noise
+- smoother subjective motion
+- current tuning feels slower than the previous aggressive grblHAL setup
+- acceleration, velocity and motion parameters still need systematic retuning
+
+These are preliminary operator observations, not benchmark claims.
+
+## Quick links
+
+- [Experimental motion integration](docs/EXPERIMENTAL_MOTION.md)
+- [Motion architecture audit](docs/MOTION_ARCHITECTURE.md)
+- [ZV input shaping](docs/INPUT_SHAPING.md)
+- [Benchmarks and acceptance results](docs/BENCHMARKS.md)
+- [Marlin inspiration and attribution](docs/MARLIN_INSPIRATION.md)
 
 ## Upstream review
 
